@@ -95,6 +95,9 @@ def chat():
         response = 'Вы выбрали курс: ' + courses[user_message] + '. Теперь выберите лекцию:'
         user_courses['курс'] = courses[user_message]
 
+    else:
+        response = 'Спасибо, что воспользовались нашим ботом, для проверки знаний.'
+
     user_courses['counter'] += 1
     return response
 
