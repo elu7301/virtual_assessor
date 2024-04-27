@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeekBrains</title>
+    <style>
+        body {
+            background-color: #333;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #header {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
+
+        #header img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            filter: brightness(400%) grayscale(100%);
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 120px 20px 70px;
+            box-sizing: border-box;
+        }
+
+        #chat-box {
+            width: 800px;
+            max-width: 100%;
+            margin: auto;
+            padding: 20px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .message {
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .user-message {
+            background-color: #4CAF50;
+        }
+
+        .bot-message {
+            background-color: black;
+        }
+
+        #message-form {
+            display: flex;
+            margin-top: 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: black;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #user-message {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px 0 0 5px;
+            outline: none;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        #send-button {
+            padding: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #chat-container::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #chat-container::-webkit-scrollbar-track,
+        body::-webkit-scrollbar-track {
+            background: #333;
+        }
+
+        #chat-container::-webkit-scrollbar-thumb,
+        body::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+
+        #chat-container::-webkit-scrollbar-thumb:hover,
+        body::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .options button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .options button:hover {
+            background-color: #45a049;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="header">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Image">
+        <h1>Виртуальный асессор</h1>
+    </div>
+    <div id="chat-container">
+        <div id="chat-box">
+            <div class="message bot-message">Привет! Я твой виртуальный помощник и эксперт в области тестирования программного обеспечения. Давай выберем курс:</div>
+            <div class="options">
+                <button onclick="sendMessage('1')">Основы тестирования</button>
+                <button onclick="sendMessage('2')">Процесс тестирования мобильных приложений</button>
+            </div>
+        </div>
+    </div>
+    <form id="message-form">
+        <input type="text" id="user-message" placeholder="Введите ваше сообщение">
+        <button id="send-button" type="submit">Отправить</button>
+    </form>
+    <script>
+    function sendMessage(message) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/chat", true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if (xhr.status == 200) {
+                    var response = xhr.responseText;
+                    displayMessage(response, 'bot');
+                    if (message === '1' || message === '2') {
+                        displayLectureButtons(message);
+                    }
+                } else {
+                    displayMessage("Ошибка " + xhr.status, 'bot');
+                }
+            }
+        };
+        xhr.send("user_message=" + encodeURIComponent(message));
+    }
+
+    function displayLectureButtons(course) {
+        var optionsDiv = document.querySelector('.options');
+        optionsDiv.innerHTML = '';
+        var lectures = {
+            '1': [
+                'Введение в тестирование',
+                'Чек-листы',
+                'Тест-кейсы',
+                'Техники тест-дизайна',
+                'Функциональная и нефункциональное тестирование',
+                'Баг и баг-репорт',
+                'Вопросы по всему курсу "Основы тестирования"'
+            ],
+            '2': [
+                'Этапы подготовки к тестированию мобильных приложений',
+                'Основные инструменты тестирования: эмуляторы, симуляторы и мобильные фермы',
+                'Открытые и закрытые тесты в сторах. Гайды мобильных сторов',
+                'Функциональное тестирование',
+                'Нефункциональное тестирование',
+                'Проблемы и сложности при тестировании мобильных приложений',
+                'Вопросы по всему курсу "Процесс тестирования мобильных приложений"'
+            ]
+        };
+        var lecturesForCourse = lectures[course];
+        for (var i = 0; i < lecturesForCourse.length; i++) {
+            var lectureButton = document.createElement('button');
+            lectureButton.textContent = 'Лекция ' + (i + 1) + ': ' + lecturesForCourse[i];
+            lectureButton.setAttribute('onclick', 'sendLecture("' + course + '","' + (i + 1) + '")');
+            optionsDiv.appendChild(lectureButton);
+        }
+    }
+
+        function sendLecture(course, lectureIndex) {
+            var lecture = course + '-' + lectureIndex;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/chat", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    if (xhr.status == 200) {
+                        displayMessage(xhr.responseText, 'bot');
+                        displayLectureButtons('');
+                    } else {
+                        displayMessage("Ошибка " + xhr.status, 'bot');
+                    }
+                }
+            };
+            xhr.send("user_message=" + encodeURIComponent(lecture));
+        }
+
+        function displayMessage(message, sender) {
+            var chatBox = document.getElementById('chat-box');
+            var messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            if (sender === 'bot') {
+                messageDiv.classList.add('bot-message');
+            } else {
+                messageDiv.classList.add('user-message');
+            }
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            var messageInput = document.getElementById('user-message');
+            var message = messageInput.value.trim();
+            if (message === '') return;
+            displayMessage(message, 'user');
+            sendMessage(message);
+            messageInput.value = '';
+        }
+
+        document.getElementById('message-form').addEventListener('submit', handleFormSubmit);
+    </script>
+</body>
+</html>
