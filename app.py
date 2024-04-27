@@ -69,7 +69,7 @@ def chat():
     parts = user_message.split('-')
     response = ''
 
-    if user_courses['counter'] >= 2:
+    if 5 >= user_courses['counter'] >= 2:
         row, user_courses['df'] = select_and_drop_random_row(user_courses['df'])
         question = row['Question'].iloc[0]
         response = get_response(user_message) + '. Следующий вопрос: '
