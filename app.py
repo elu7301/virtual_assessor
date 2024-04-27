@@ -31,7 +31,10 @@ user_courses = {'counter': 0}
 
 
 def select_and_drop_random_row(df):
-    random_row = df.sample()
+    if len(df) <= 5:
+        random_row = df.head(1)
+    else:
+        random_row = df.sample()
     index_to_drop = random_row.index[0]
     df = df.drop(index_to_drop)
     return random_row, df
@@ -69,7 +72,7 @@ def chat():
     if user_courses['counter'] >= 2:
         row, user_courses['df'] = select_and_drop_random_row(user_courses['df'])
         question = row['Question'].iloc[0]
-        response = get_response(user_message) + ' \n'
+        response = get_response(user_message) + '. Следующий вопрос: '
         response += question
 
     elif user_courses['counter'] == 1:
