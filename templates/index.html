@@ -14,6 +14,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            background: linear-gradient(to right, #111 0%, #222 20%, #333 40%, #444 60%, #555 80%, #666 100%);
         }
 
         #header {
@@ -142,12 +143,17 @@
             background-color: #45a049;
         }
 
+        .virtlabel {
+            font-family: "Verdana";
+            font-weight: 300;
+        }
+
     </style>
 </head>
 <body>
     <div id="header">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Image">
-        <h1>Виртуальный асессор</h1>
+        <h1 class="virtlabel">GeekMentor</h1>
     </div>
     <div id="chat-container">
         <div id="chat-box">
