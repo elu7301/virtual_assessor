@@ -94,11 +94,15 @@
         #send-button {
             padding: 10px;
             border: none;
-            background-color: #4CAF50;
+            background-color: #9255b5;
             color: white;
             border-radius: 0 5px 5px 0;
             cursor: pointer;
             outline: none;
+        }
+
+        #send-button:hover {
+            background-color: #613878;
         }
 
         #chat-container::-webkit-scrollbar,
@@ -131,21 +135,24 @@
 
         .options button {
             padding: 10px;
-            background-color: #4CAF50;
+            background-color: #9255b5;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            font-size: 15px;
         }
 
         .options button:hover {
-            background-color: #45a049;
+            background-color: #613878;
+            opacity: 0.7;
         }
 
         .virtlabel {
             font-family: "Verdana";
             font-weight: 300;
+            opacity: 0.9;
         }
 
     </style>
@@ -157,13 +164,15 @@
     </div>
     <div id="chat-container">
         <div id="chat-box">
-            <div class="message bot-message">Привет! Я твой виртуальный помощник и эксперт в области тестирования программного обеспечения. Давай выберем курс:</div>
+            <div class="message bot-message" style="font-family: 'Verdana'; opacity: 0.9;">Привет! <br> <br>Я твой виртуальный помощник и эксперт в области тестирования программного обеспечения GeekMentor. <br><br>Давай выберем курс и начнем проверку знаний:</div>
+
             <div class="options">
                 <button onclick="sendMessage('1')">Основы тестирования</button>
                 <button onclick="sendMessage('2')">Процесс тестирования мобильных приложений</button>
             </div>
         </div>
     </div>
+
     <form id="message-form">
         <input type="text" id="user-message" placeholder="Введите ваше сообщение">
         <button id="send-button" type="submit">Отправить</button>
@@ -177,7 +186,19 @@
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 if (xhr.status == 200) {
                     var response = xhr.responseText;
-                    displayMessage(response, 'bot');
+                    var sentences = response.split("\t");
+
+                    displayMessage(sentences[0], 'bot');
+
+                    if (sentences[0].endsWith("знаний.")) {
+                        displayMessage('Держите обратную связь по Вашей работе:', 'bot');
+
+                        displayMessage(sentences[1], 'bot', true);
+
+                        displayMessageWithDownload(sentences[2], 'bot');
+                    }
+
+
                     if (message === '1' || message === '2') {
                         displayLectureButtons(message);
                     }
@@ -215,56 +236,125 @@
         var lecturesForCourse = lectures[course];
         for (var i = 0; i < lecturesForCourse.length; i++) {
             var lectureButton = document.createElement('button');
-            lectureButton.textContent = 'Лекция ' + (i + 1) + ': ' + lecturesForCourse[i];
+            if (i == lecturesForCourse.length - 1) {
+                lectureButton.textContent = lecturesForCourse[i];
+            }
+            else {
+                lectureButton.textContent = 'Лекция ' + (i + 1) + ': ' + lecturesForCourse[i];
+            }
             lectureButton.setAttribute('onclick', 'sendLecture("' + course + '","' + (i + 1) + '")');
             optionsDiv.appendChild(lectureButton);
         }
     }
 
-        function sendLecture(course, lectureIndex) {
-            var lecture = course + '-' + lectureIndex;
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/chat", true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    if (xhr.status == 200) {
-                        displayMessage(xhr.responseText, 'bot');
-                        displayLectureButtons('');
-                    } else {
-                        displayMessage("Ошибка " + xhr.status, 'bot');
-                    }
+    function sendLecture(course, lectureIndex) {
+        var lecture = course + '-' + lectureIndex;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/chat", true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if (xhr.status == 200) {
+                    displayMessage(xhr.responseText, 'bot');
+                    displayLectureButtons('');
+                } else {
+                    displayMessage("Ошибка " + xhr.status, 'bot');
                 }
-            };
-            xhr.send("user_message=" + encodeURIComponent(lecture));
-        }
-
-        function displayMessage(message, sender) {
-            var chatBox = document.getElementById('chat-box');
-            var messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            if (sender === 'bot') {
-                messageDiv.classList.add('bot-message');
-            } else {
-                messageDiv.classList.add('user-message');
             }
-            messageDiv.textContent = message;
-            chatBox.appendChild(messageDiv);
+        };
+        xhr.send("user_message=" + encodeURIComponent(lecture));
+    }
 
-            window.scrollTo(0, document.body.scrollHeight);
+    function displayMessage(message, sender, isFeedback=false) {
+        var chatBox = document.getElementById('chat-box');
+        var messageDiv = document.createElement('div');
+        var sentences = message.split("\n");
+
+        for (var i = 0; i < sentences.length; i++) {
+            var sentence = sentences[i];
+<!--            console.log(sentence)-->
+            var text1 = document.createTextNode(sentence);
+            var paragraph1 = document.createElement('div');
+            if (sender === 'bot' && !isFeedback)
+                paragraph1.style.height = "20px";
+            paragraph1.appendChild(text1);
+            messageDiv.appendChild(paragraph1);
         }
 
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            var messageInput = document.getElementById('user-message');
-            var message = messageInput.value.trim();
-            if (message === '') return;
-            displayMessage(message, 'user');
-            sendMessage(message);
-            messageInput.value = '';
+
+        messageDiv.classList.add('message');
+<!--        console.log(message)-->
+<!--        if (message.endsWith("знаний.")) {-->
+<!--            var chatBox = document.getElementById('chat-box');-->
+
+<!--            while (chatBox.firstChild) {-->
+<!--                chatBox.removeChild(chatBox.firstChild);-->
+<!--            }-->
+<!--        }-->
+        if (sender === 'bot') {
+            messageDiv.classList.add('bot-message');
+        } else {
+            messageDiv.classList.add('user-message');
+        }
+<!--        messageDiv.textContent = message;-->
+        chatBox.appendChild(messageDiv);
+
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function displayMessageWithDownload(file_name, sender) {
+        var chatBox = document.getElementById('chat-box');
+        var messageDiv = document.createElement('div');
+        messageDiv.style.height = "30px";
+        messageDiv.style.backgroundColor = "#9255b5";
+
+        messageDiv.addEventListener("mouseover", function() {
+            messageDiv.style.backgroundColor = "#613878";
+            messageDiv.style.opacity = "0.7";
+        });
+
+        // Возвращаем исходный цвет при уходе курсора
+        messageDiv.addEventListener("mouseout", function() {
+            messageDiv.style.backgroundColor = "#9255b5";
+            messageDiv.style.opacity = "1";
+        });
+
+
+        messageDiv.classList.add('message');
+        if (sender === 'bot') {
+            messageDiv.classList.add('bot-message');
+        } else {
+            messageDiv.classList.add('user-message');
         }
 
-        document.getElementById('message-form').addEventListener('submit', handleFormSubmit);
+        var dictionary = {};
+        dictionary['1-1'] = 'https://drive.google.com/uc?export=download&id=1-_ZTbSF0qUSMfQNAF_nD7T1WQeXx0E1L';
+        dictionary['1-3'] = 'https://drive.google.com/uc?export=download&id=1zwvO-2hiqsJW0RBFNn8XCfvzT4vqeOag';
+
+        var downloadLink = document.createElement('a');
+        downloadLink.href = dictionary[file_name]
+        downloadLink.textContent = 'Скачать сжатый конспект!';
+        downloadLink.style.textDecoration = 'none'; // Убираем подчеркивание
+        downloadLink.style.color = 'white'; // Делаем текст белым
+        downloadLink.style.display = 'block'; // Размещаем текст по центру
+        downloadLink.style.textAlign = 'center'; // Размещаем текст по центру
+        downloadLink.style.paddingTop = '5px';
+        messageDiv.appendChild(downloadLink);
+        chatBox.appendChild(messageDiv);
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        var messageInput = document.getElementById('user-message');
+        var message = messageInput.value.trim();
+        if (message === '') return;
+        displayMessage(message, 'user');
+        sendMessage(message);
+        messageInput.value = '';
+    }
+
+    document.getElementById('message-form').addEventListener('submit', handleFormSubmit);
     </script>
 </body>
 </html>
