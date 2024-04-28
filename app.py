@@ -38,7 +38,7 @@ user_courses = {
 
 
 def select_and_drop_random_row(df):
-    if len(df) >= 40:
+    if len(df) >= 10:
         random_row = df.sample()
     else:
         random_row = df.head(1)
